@@ -6,3 +6,5 @@ services:
     command: ['sh', '-c', 'yarn start:prod']
     ports:
       - '3001:4000'
+    env_file:
+      - .env 
