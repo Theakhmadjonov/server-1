@@ -1,0 +1,8 @@
+name: my_compose_container
+services:
+  server-1-app:
+    build:
+      context: .
+    command: ['sh', '-c', 'yarn start:prod']
+    ports:
+      - '3001:4000'
