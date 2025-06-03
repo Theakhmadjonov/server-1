@@ -3,14 +3,13 @@ name: Deploy to Server
 on:
   push:
     branches:
-      - main
+      [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy to server via SSH
+      - name: Deploy to server
         env:
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
@@ -18,15 +17,22 @@ jobs:
         run: |
           echo "$SSH_KEY" > key.pem
           chmod 600 key.pem
-
-          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
-            set -e
-            cd /home/ubuntu/server-1
-            git pull origin main
-            if ! docker compose version >/dev/null 2>&1; then
-              sudo apt update
-              sudo apt install -y docker-compose-plugin
+          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST '
+            # Docker Compose o‘rnatilganligini tekshirish va agar bo‘lmasa o‘rnatish
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Docker Compose topilmadi, o‘rnatilmoqda..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+              -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            else
+              echo "Docker Compose allaqachon o‘rnatilgan."
             fi
-            docker compose down
-            docker compose up --build -d
-          EOF
+
+            # Loyihaga o‘tish va yangilash
+            cd /home/ubuntu/aws-server-with-docker
+            git pull origin main
+
+            # Docker konteynerlarni yangilash
+            sudo docker-compose down
+            sudo docker-compose up --build -d
+          '
