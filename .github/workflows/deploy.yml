@@ -30,7 +30,7 @@ jobs:
 
             # Loyihaga o‘tish va yangilash
             cd /home/ubuntu/server-1
-            git pull main
+            git pull origin main
 
             # Docker konteynerlarni yangilash
             sudo docker-compose down
